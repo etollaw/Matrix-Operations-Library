@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Operations</title>
+</head>
+<body>
+    <h1>Matrix Operations</h1>
+    
+    <form method="POST">
+        <h2>Matrix 1</h2>
+        <label for="rows1">Number of Rows:</label>
+        <input type="number" id="rows1" name="rows1" required>
+        <label for="cols1">Number of Columns:</label>
+        <input type="number" id="cols1" name="cols1" required>
+        
+        <div id="matrix1"></div>
+        
+        <h2>Matrix 2</h2>
+        <label for="rows2">Number of Rows:</label>
+        <input type="number" id="rows2" name="rows2" required>
+        <label for="cols2">Number of Columns:</label>
+        <input type="number" id="cols2" name="cols2" required>
+        
+        <div id="matrix2"></div>
+
+        <button type="submit" name="operation" value="multiply">Multiply</button>
+        <button type="submit" name="operation" value="determinant">Determinant</button>
+        <button type="submit" name="operation" value="inverse">Inverse</button>
+        <button type="submit" name="operation" value="transpose">Transpose</button>
+        <button type="submit" name="operation" value="eigen">Eigenvalues & Eigenvectors</button>
+    </form>
+
+    <h2>Results</h2>
+    {% if results %}
+        {% for key, value in results.items() %}
+            <h3>{{ key }}</h3>
+            <pre>{{ value | tojson(indent=2) }}</pre>
+        {% endfor %}
+    {% endif %}
+    
+    <script>
+        function createMatrixInputs(matrixId, rows, cols) {
+            const matrixDiv = document.getElementById(matrixId);
+            matrixDiv.innerHTML = ""; // Clear existing inputs
+            for (let i = 0; i < rows; i++) {
+                const rowDiv = document.createElement("div");
+                for (let j = 0; j < cols; j++) {
+                    const input = document.createElement("input");
+                    input.type = "number";
+                    input.name = `${matrixId.replace("matrix", "")}_row${i}_col${j}`; // This generates names like matrix1_row0_col0
+                    rowDiv.appendChild(input);
+                }
+                matrixDiv.appendChild(rowDiv);
+            }
+        }
+
+        document.getElementById("rows1").addEventListener("change", function() {
+            createMatrixInputs("matrix1", this.value, document.getElementById("cols1").value);
+        });
+
+        document.getElementById("cols1").addEventListener("change", function() {
+            createMatrixInputs("matrix1", document.getElementById("rows1").value, this.value);
+        });
+
+        document.getElementById("rows2").addEventListener("change", function() {
+            createMatrixInputs("matrix2", this.value, document.getElementById("cols2").value);
+        });
+
+        document.getElementById("cols2").addEventListener("change", function() {
+            createMatrixInputs("matrix2", document.getElementById("rows2").value, this.value);
+        });
+    </script>
+</body>
+</html>
