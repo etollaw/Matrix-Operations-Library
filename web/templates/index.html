@@ -3,74 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrix Operations</title>
-</head>
-<body>
-    <h1>Matrix Operations</h1>
-    
-    <form method="POST">
-        <h2>Matrix 1</h2>
-        <label for="rows1">Number of Rows:</label>
-        <input type="number" id="rows1" name="rows1" required>
-        <label for="cols1">Number of Columns:</label>
-        <input type="number" id="cols1" name="cols1" required>
-        
-        <div id="matrix1"></div>
-        
-        <h2>Matrix 2</h2>
-        <label for="rows2">Number of Rows:</label>
-        <input type="number" id="rows2" name="rows2" required>
-        <label for="cols2">Number of Columns:</label>
-        <input type="number" id="cols2" name="cols2" required>
-        
-        <div id="matrix2"></div>
+    <title>Matrix Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --error: #dc2626;
+            --error-bg: #fef2f2;
+            --success: #059669;
+            --radius: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            color: #fff;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+        header h1 { font-size: 1.5rem; font-weight: 700; }
+        header p  { opacity: .85; font-size: .875rem; margin-top: .25rem; }
+        .container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            font-size: .875rem;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: .375rem;
+        }
+        select, textarea {
+            font-family: inherit;
+            font-size: .875rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: .625rem .75rem;
+            width: 100%;
+            transition: border-color .15s;
+        }
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+        }
+        textarea {
+            font-family: 'JetBrains Mono', monospace;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 640px) { .input-grid { grid-template-columns: 1fr; } }
+        .dim-badge {
+            display: inline-block;
+            font-size: .75rem;
+            background: #eff6ff;
+            color: var(--primary);
+            padding: .125rem .5rem;
+            border-radius: 999px;
+            margin-left: .25rem;
+            font-weight: 500;
+        }
+        .btn-row { display: flex; gap: .75rem; margin-top: 1.25rem; flex-wrap: wrap; align-items: center; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .375rem;
+            padding: .625rem 1.25rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: .875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s;
+            font-family: inherit;
+        }
+        .btn:disabled { opacity: .6; cursor: not-allowed; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+        .hidden { display: none !important; }
 
-        <button type="submit" name="operation" value="multiply">Multiply</button>
-        <button type="submit" name="operation" value="determinant">Determinant</button>
-        <button type="submit" name="operation" value="inverse">Inverse</button>
-        <button type="submit" name="operation" value="transpose">Transpose</button>
-        <button type="submit" name="operation" value="eigen">Eigenvalues & Eigenvectors</button>
-    </form>
-
-    <h2>Results</h2>
-    {% if results %}
-        {% for key, value in results.items() %}
-            <h3>{{ key }}</h3>
-            <pre>{{ value | tojson(indent=2) }}</pre>
-        {% endfor %}
-    {% endif %}
-    
-    <script>
-        function createMatrixInputs(matrixId, rows, cols) {
-            const matrixDiv = document.getElementById(matrixId);
-            matrixDiv.innerHTML = ""; // Clear existing inputs
-            for (let i = 0; i < rows; i++) {
-                const rowDiv = document.createElement("div");
-                for (let j = 0; j < cols; j++) {
-                    const input = document.createElement("input");
-                    input.type = "number";
-                    input.name = `${matrixId.replace("matrix", "")}_row${i}_col${j}`; // This generates names like matrix1_row0_col0
-                    rowDiv.appendChild(input);
-                }
-                matrixDiv.appendChild(rowDiv);
-            }
+        /* Results */
+        #result-area { animation: fadeIn .3s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .result-label {
+            font-size: .8rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .05em;
+            color: var(--success); margin-bottom: .75rem;
+        }
+        .result-description {
+            font-size: .875rem; color: var(--text-light); margin-top: .75rem;
+        }
+        .error-box {
+            background: var(--error-bg); border: 1px solid #fecaca;
+            border-radius: var(--radius); padding: 1rem;
+            color: var(--error); font-size: .875rem;
         }
 
-        document.getElementById("rows1").addEventListener("change", function() {
-            createMatrixInputs("matrix1", this.value, document.getElementById("cols1").value);
-        });
+        /* Matrix bracket display */
+        .matrix-wrapper { display: inline-block; margin: .5rem 0; }
+        .matrix-bracket {
+            display: inline-block; position: relative;
+            padding: .5rem 1rem;
+        }
+        .matrix-bracket::before,
+        .matrix-bracket::after {
+            content: ''; position: absolute;
+            top: 0; bottom: 0; width: 6px;
+            border: 2px solid var(--text);
+        }
+        .matrix-bracket::before { left: 0; border-right: none; }
+        .matrix-bracket::after  { right: 0; border-left: none; }
+        .matrix-bracket table { border-collapse: collapse; }
+        .matrix-bracket td {
+            padding: .25rem .75rem; text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .9rem; white-space: nowrap;
+        }
+        .scalar-result {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem; font-weight: 600; padding: .5rem 0;
+        }
+        .decomp-section { margin: .75rem 0; }
+        .decomp-label { font-weight: 600; font-size: .9rem; margin-bottom: .25rem; }
+        .eigen-list { font-family: 'JetBrains Mono', monospace; padding: .5rem 0; }
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid #fff; border-top-color: transparent;
+            border-radius: 50%; animation: spin .6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .example-select { width: auto; min-width: 200px; }
+        footer {
+            text-align: center; padding: 2rem;
+            font-size: .8rem; color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>&#129518; Matrix Calculator</h1>
+        <p>Multiplication &middot; Determinant &middot; Inverse &middot; Eigenvalues &middot; Solve Ax=b &middot; LU &middot; Rank &middot; Trace</p>
+    </header>
 
-        document.getElementById("cols1").addEventListener("change", function() {
-            createMatrixInputs("matrix1", document.getElementById("rows1").value, this.value);
-        });
+    <div class="container">
+        <!-- Operation selector -->
+        <div class="card">
+            <div class="card-title">Operation</div>
+            <select id="operation">
+                <option value="multiply">Matrix Multiplication (A &times; B)</option>
+                <option value="determinant">Determinant</option>
+                <option value="inverse">Inverse</option>
+                <option value="transpose">Transpose</option>
+                <option value="eigen">Eigenvalues &amp; Eigenvectors</option>
+                <option value="solve">Solve Linear System (Ax = b)</option>
+                <option value="lu">LU Decomposition</option>
+                <option value="rank">Rank</option>
+                <option value="trace">Trace</option>
+            </select>
+        </div>
 
-        document.getElementById("rows2").addEventListener("change", function() {
-            createMatrixInputs("matrix2", this.value, document.getElementById("cols2").value);
-        });
+        <!-- Matrix inputs -->
+        <div class="card">
+            <div class="card-title">Input</div>
+            <div class="input-grid">
+                <div>
+                    <label for="matrix-a">Matrix A <span class="dim-badge" id="dim-a"></span></label>
+                    <textarea id="matrix-a" rows="4"
+                        placeholder="Enter rows separated by newlines or ;&#10;Example:&#10;1 2 3&#10;4 5 6&#10;7 8 9"></textarea>
+                </div>
+                <div id="matrix-b-wrapper">
+                    <label for="matrix-b">Matrix B <span class="dim-badge" id="dim-b"></span></label>
+                    <textarea id="matrix-b" rows="4"
+                        placeholder="Enter Matrix B&#10;Example:&#10;1 2&#10;3 4&#10;5 6"></textarea>
+                </div>
+            </div>
+            <div id="vector-b-wrapper" class="hidden" style="margin-top:1rem">
+                <label for="vector-b">Vector b</label>
+                <textarea id="vector-b" rows="2"
+                    placeholder="Space-separated values, e.g. 1 2 3"></textarea>
+            </div>
+        </div>
 
-        document.getElementById("cols2").addEventListener("change", function() {
-            createMatrixInputs("matrix2", document.getElementById("rows2").value, this.value);
+        <!-- Actions -->
+        <div class="card">
+            <div class="btn-row">
+                <button id="btn-compute" class="btn btn-primary" onclick="compute()">Compute</button>
+                <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+                <select id="example-select" class="example-select btn btn-secondary" onchange="loadExample(this.value)">
+                    <option value="">Load Example&hellip;</option>
+                    <option value="multiply-2x2">Multiply 2&times;2</option>
+                    <option value="det-3x3">Determinant 3&times;3</option>
+                    <option value="inverse-2x2">Inverse 2&times;2</option>
+                    <option value="eigen-3x3">Eigenvalues 3&times;3</option>
+                    <option value="solve-3x3">Solve 3&times;3 System</option>
+                    <option value="lu-3x3">LU Decomposition 3&times;3</option>
+                    <option value="singular">Singular Matrix</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="result-area" class="card hidden">
+            <div id="result-content"></div>
+        </div>
+    </div>
+
+    <footer>Matrix Operations Library &mdash; Python &middot; NumPy &middot; Flask</footer>
+
+<script>
+/* ── DOM references ─────────────────────────────────────────────── */
+const opSelect      = document.getElementById('operation');
+const matrixAEl      = document.getElementById('matrix-a');
+const matrixBEl      = document.getElementById('matrix-b');
+const vectorBEl      = document.getElementById('vector-b');
+const matrixBWrapper = document.getElementById('matrix-b-wrapper');
+const vectorBWrapper = document.getElementById('vector-b-wrapper');
+const dimA           = document.getElementById('dim-a');
+const dimB           = document.getElementById('dim-b');
+const resultArea     = document.getElementById('result-area');
+const resultContent  = document.getElementById('result-content');
+const btnCompute     = document.getElementById('btn-compute');
+
+const OP_NEEDS_B      = new Set(['multiply']);
+const OP_NEEDS_VECTOR = new Set(['solve']);
+
+/* ── Visibility toggle ──────────────────────────────────────────── */
+opSelect.addEventListener('change', updateVisibility);
+matrixAEl.addEventListener('input', () => updateDim(matrixAEl, dimA));
+matrixBEl.addEventListener('input', () => updateDim(matrixBEl, dimB));
+
+function updateVisibility() {
+    const op = opSelect.value;
+    matrixBWrapper.classList.toggle('hidden', !OP_NEEDS_B.has(op));
+    vectorBWrapper.classList.toggle('hidden', !OP_NEEDS_VECTOR.has(op));
+}
+
+function updateDim(el, badge) {
+    const text = el.value.trim();
+    if (!text) { badge.textContent = ''; return; }
+    const rows = text.split(/[;\n]/).filter(r => r.trim());
+    const cols = rows[0]?.trim().split(/[\s,]+/).filter(Boolean).length || 0;
+    badge.textContent = rows.length + '\u00d7' + cols;
+}
+
+/* ── Clear ──────────────────────────────────────────────────────── */
+function clearAll() {
+    matrixAEl.value = '';
+    matrixBEl.value = '';
+    vectorBEl.value = '';
+    dimA.textContent = '';
+    dimB.textContent = '';
+    resultArea.classList.add('hidden');
+    document.getElementById('example-select').value = '';
+}
+
+/* ── Compute ────────────────────────────────────────────────────── */
+async function compute() {
+    const op = opSelect.value;
+    const body = { operation: op, matrix_a: matrixAEl.value };
+    if (OP_NEEDS_B.has(op))      body.matrix_b = matrixBEl.value;
+    if (OP_NEEDS_VECTOR.has(op)) body.vector_b = vectorBEl.value;
+
+    btnCompute.disabled = true;
+    btnCompute.innerHTML = '<span class="spinner"></span> Computing\u2026';
+
+    try {
+        const resp = await fetch('/api/compute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
         });
-    </script>
+        const data = await resp.json();
+        data.success ? showResult(data) : showError(data.error);
+    } catch (err) {
+        showError('Network error: ' + err.message);
+    } finally {
+        btnCompute.disabled = false;
+        btnCompute.textContent = 'Compute';
+    }
+}
+
+/* ── Render helpers ─────────────────────────────────────────────── */
+function showError(msg) {
+    resultArea.classList.remove('hidden');
+    resultContent.innerHTML = '<div class="error-box">\u26a0\ufe0f ' + esc(msg) + '</div>';
+}
+
+function showResult(data) {
+    resultArea.classList.remove('hidden');
+    const op = data.operation, res = data.result;
+    let h = '<div class="result-label">\u2713 ' + esc(op) + '</div>';
+
+    if (['determinant','rank','trace'].includes(op)) {
+        h += '<div class="scalar-result">' + fmt(res) + '</div>';
+    } else if (['multiply','inverse','transpose'].includes(op)) {
+        h += renderMatrix(res);
+    } else if (op === 'solve') {
+        h += '<div style="margin:.5rem 0"><strong>x =</strong></div>' + renderMatrix(res.map(v => [v]));
+    } else if (op === 'eigen') {
+        h += renderEigen(res);
+    } else if (op === 'lu') {
+        h += renderLU(res);
+    }
+
+    if (data.description)
+        h += '<div class="result-description">' + esc(data.description) + '</div>';
+
+    h += '<div style="margin-top:1rem"><button class="btn btn-secondary" onclick="copyResult()">\ud83d\udccb Copy Result</button></div>';
+    resultContent.innerHTML = h;
+}
+
+function renderMatrix(mat) {
+    if (!Array.isArray(mat) || !Array.isArray(mat[0]))
+        return '<pre>' + JSON.stringify(mat, null, 2) + '</pre>';
+    let h = '<div class="matrix-wrapper"><div class="matrix-bracket"><table>';
+    for (const row of mat) {
+        h += '<tr>';
+        for (const v of row) h += '<td>' + fmt(v) + '</td>';
+        h += '</tr>';
+    }
+    return h + '</table></div></div>';
+}
+
+function renderEigen(d) {
+    let h = '<div class="decomp-section"><div class="decomp-label">Eigenvalues</div><div class="eigen-list">';
+    d.eigenvalues.forEach((v, i) => { h += '<div>\u03bb<sub>' + (i+1) + '</sub> = ' + fmt(v) + '</div>'; });
+    h += '</div></div>';
+    h += '<div class="decomp-section"><div class="decomp-label">Eigenvectors (columns)</div>';
+    h += renderMatrix(d.eigenvectors) + '</div>';
+    return h;
+}
+
+function renderLU(d) {
+    let h = '';
+    for (const [label, key] of [['P (Permutation)','P'],['L (Lower triangular)','L'],['U (Upper triangular)','U']]) {
+        h += '<div class="decomp-section"><div class="decomp-label">' + label + '</div>' + renderMatrix(d[key]) + '</div>';
+    }
+    return h;
+}
+
+function fmt(v) {
+    if (v == null) return '\u2014';
+    if (typeof v === 'object' && 're' in v) {
+        const re = Number(v.re).toFixed(4), im = Number(v.im);
+        return re + (im >= 0 ? '+' : '') + im.toFixed(4) + 'i';
+    }
+    const n = Number(v);
+    return Number.isInteger(n) ? String(n) : n.toFixed(4);
+}
+
+function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+}
+
+function copyResult() {
+    navigator.clipboard.writeText(resultContent.innerText).then(() => {
+        const b = resultContent.querySelector('.btn-secondary');
+        if (b) { const o = b.innerHTML; b.textContent = '\u2713 Copied!'; setTimeout(() => b.innerHTML = o, 1500); }
+    });
+}
+
+/* ── Examples ───────────────────────────────────────────────────── */
+const EXAMPLES = {
+    'multiply-2x2': { op:'multiply', a:'1 2\n3 4', b:'5 6\n7 8', v:'' },
+    'det-3x3':      { op:'determinant', a:'6 1 1\n4 -2 5\n2 8 7', b:'', v:'' },
+    'inverse-2x2':  { op:'inverse', a:'4 7\n2 6', b:'', v:'' },
+    'eigen-3x3':    { op:'eigen', a:'2 0 0\n0 3 4\n0 4 9', b:'', v:'' },
+    'solve-3x3':    { op:'solve', a:'2 1 -1\n-3 -1 2\n-2 1 2', b:'', v:'8 -11 -3' },
+    'lu-3x3':       { op:'lu', a:'2 -1 0\n-1 2 -1\n0 -1 2', b:'', v:'' },
+    'singular':     { op:'determinant', a:'1 2 3\n4 5 6\n7 8 9', b:'', v:'' },
+};
+
+function loadExample(key) {
+    if (!key || !EXAMPLES[key]) return;
+    const ex = EXAMPLES[key];
+    opSelect.value = ex.op;
+    matrixAEl.value = ex.a;
+    matrixBEl.value = ex.b;
+    vectorBEl.value = ex.v;
+    updateVisibility();
+    updateDim(matrixAEl, dimA);
+    updateDim(matrixBEl, dimB);
+    resultArea.classList.add('hidden');
+}
+
+/* ── Init ───────────────────────────────────────────────────────── */
+updateVisibility();
+</script>
 </body>
 </html>

@@ -1,0 +1,4 @@
+# Vercel deployment requirements
+numpy
+scipy
+flask
